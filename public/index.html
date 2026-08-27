@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>物料项目号登记</title>
+<style>
+  :root {
+    --bg: #f5f7fa;
+    --panel: #ffffff;
+    --border: #dfe3ea;
+    --text: #1f2430;
+    --muted: #6b7280;
+    --accent: #2563eb;
+    --accent-soft: #eff6ff;
+    --green: #16a34a;
+    --red: #dc2626;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  header {
+    position: sticky; top: 0; z-index: 10;
+    background: rgba(255,255,255,.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 20px;
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .logo {
+    font-size: 18px; font-weight: 700; white-space: nowrap;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .logo .mark {
+    width: 30px; height: 30px; border-radius: 8px;
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+  }
+  .search-box { flex: 1; min-width: 180px; position: relative; }
+  .search-box input {
+    width: 100%; padding: 8px 12px 8px 32px;
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text); font-size: 14px; outline: none;
+  }
+  .search-box input:focus { border-color: var(--accent); }
+  .search-box::before {
+    content: "🔍"; position: absolute; left: 9px; top: 50%;
+    transform: translateY(-50%); font-size: 13px; opacity: .55;
+  }
+  .btn {
+    padding: 9px 16px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--panel); color: var(--text); font-size: 14px;
+    cursor: pointer; transition: .15s; white-space: nowrap;
+  }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn.primary {
+    background: var(--accent); border-color: var(--accent);
+    color: #fff; font-weight: 600;
+  }
+  .btn.primary:hover { background: #1d4ed8; color: #fff; }
+  .btn:disabled { opacity: .5; cursor: default; }
+  .btn.danger:hover { border-color: var(--red); color: var(--red); }
+
+  main { max-width: 980px; margin: 0 auto; padding: 20px; }
+
+  /* 录入区 */
+  .entry {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 18px;
+    display: flex; flex-direction: column; gap: 10px;
+    margin-bottom: 18px;
+  }
+  .entry-label { font-size: 13px; color: var(--muted); font-weight: 600; }
+  .entry-row { display: flex; gap: 10px; }
+  .entry-row input {
+    flex: 1; padding: 12px 14px; border: 1px solid var(--border);
+    border-radius: 8px; font-size: 15px; outline: none;
+    background: var(--panel); color: var(--text);
+  }
+  .entry-row input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+  .entry-row .btn { font-size: 15px; padding: 12px 22px; }
+  .preview {
+    display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+    font-size: 13px; color: var(--muted);
+  }
+  .preview .tag {
+    padding: 4px 12px; border-radius: 8px;
+    background: var(--accent-soft); color: var(--accent);
+    font-family: ui-monospace, Consolas, monospace; font-weight: 600;
+  }
+  .preview .err { color: var(--red); background: #fef2f2; }
+  .hint { font-size: 12px; color: var(--muted); }
+  .hint code { background: #f0f2f5; padding: 1px 6px; border-radius: 5px; font-size: 12px; }
+
+  /* 统计 + 列表 */
+  .stats {
+    display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+    font-size: 13px; color: var(--muted); margin-bottom: 12px;
+  }
+  .stats b { color: var(--text); }
+
+  .table-wrap {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    text-align: left; font-size: 12px; color: var(--muted);
+    padding: 10px 14px; border-bottom: 1px solid var(--border);
+    background: #fafbfc; font-weight: 600; white-space: nowrap;
+  }
+  tbody td {
+    padding: 11px 14px; border-bottom: 1px solid #f0f2f5;
+    font-size: 14px; vertical-align: middle;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: #fafbfd; }
+  td.code {
+    font-family: ui-monospace, Consolas, monospace;
+    font-weight: 700; color: var(--accent); letter-spacing: .5px;
+  }
+  td.time { color: var(--muted); font-size: 13px; white-space: nowrap; }
+  .op-btn {
+    background: none; border: none; color: var(--muted);
+    cursor: pointer; font-size: 14px; padding: 4px 8px; border-radius: 6px;
+  }
+  .op-btn:hover { color: var(--red); background: #fef2f2; }
+
+  .empty { text-align: center; color: var(--muted); padding: 46px 20px; font-size: 14px; }
+  .empty .big { font-size: 42px; margin-bottom: 10px; }
+  .loading { text-align: center; color: var(--muted); padding: 46px; }
+
+  /* 登录层 */
+  #loginMask {
+    position: fixed; inset: 0; z-index: 300;
+    background: radial-gradient(ellipse at top, #e8f0fe 0%, var(--bg) 70%);
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  #loginMask.hidden { display: none; }
+  .login-card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 16px; padding: 32px; width: 100%; max-width: 360px;
+    display: flex; flex-direction: column; gap: 16px; text-align: center;
+    box-shadow: 0 20px 60px rgba(15,23,42,.08);
+  }
+  .login-card .logo { font-size: 26px; justify-content: center; display: flex; }
+  .login-card p { color: var(--muted); font-size: 13px; }
+  .login-card input {
+    width: 100%; padding: 12px 14px; border-radius: 10px;
+    background: var(--panel); border: 1px solid var(--border);
+    color: var(--text); font-size: 16px; outline: none; text-align: center;
+    letter-spacing: 2px;
+  }
+  .login-card input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+  .hint2 { font-size: 12px; color: var(--muted); }
+
+  #toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: #1f2430; color: #fff; padding: 10px 20px; border-radius: 10px;
+    font-size: 14px; transition: .3s; z-index: 200; opacity: 0;
+    box-shadow: 0 8px 24px rgba(0,0,0,.2);
+  }
+  #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+  #toast.err { background: var(--red); }
+
+  /* 移动端：表格转卡片 */
+  @media (max-width: 640px) {
+    .entry-row { flex-direction: column; }
+    .entry-row .btn { width: 100%; }
+    thead { display: none; }
+    table, tbody, tr, td { display: block; width: 100%; }
+    tbody tr {
+      display: grid; grid-template-columns: 1fr; gap: 4px;
+      padding: 12px 14px; border-bottom: 1px solid var(--border);
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody td { border: none; padding: 2px 0; }
+    td.time { font-size: 12px; }
+    .op-btn { position: absolute; right: 14px; top: 12px; }
+    tbody tr { position: relative; }
+    td.code::before, td.name::before {
+      content: attr(data-label); display: block;
+      font-size: 11px; color: var(--muted); margin-bottom: 2px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><span class="mark">物</span>物料项目号登记</div>
+  <div class="search-box">
+    <input id="search" type="text" placeholder="搜索项目号 / 物料名称…">
+  </div>
+</header>
+
+<main>
+  <!-- 录入区 -->
+  <section class="entry">
+    <div class="entry-label">输入项目号和物料名称（自动截取前 8 位数字为项目号）</div>
+    <div class="entry-row">
+      <input id="input" type="text" placeholder="例：2026082705 不锈钢法兰球阀 或 20260827法兰闸阀" autocomplete="off">
+      <button class="btn primary" id="addBtn" onclick="addItem()">＋ 添加</button>
+    </div>
+    <div class="preview" id="preview"></div>
+    <div class="hint">💡 支持直接粘贴整段文字：<code>2026082705 耐高温不锈钢球阀</code> → 项目号 <code>20260827</code> + 名称 <code>耐高温不锈钢球阀</code>。同项目号重复添加会更新名称。</div>
+  </section>
+
+  <!-- 列表 -->
+  <div class="stats" id="stats"></div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:180px;">物料项目号</th>
+          <th>物料名称</th>
+          <th style="width:190px;">添加时间</th>
+          <th style="width:70px; text-align:right;">操作</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div class="empty" id="empty" hidden>
+      <div class="big">📦</div>
+      还没有物料记录，输入项目号和名称后点「添加」
+    </div>
+    <div class="loading" id="loading" hidden>加载中…</div>
+  </div>
+</main>
+
+<!-- 登录层 -->
+<div id="loginMask">
+  <div class="login-card">
+    <div class="logo">📦 物料项目号登记</div>
+    <p>私有工具，请输入访问密码</p>
+    <input type="password" id="loginPw" placeholder="访问密码" autocomplete="current-password">
+    <button class="btn primary" id="loginBtn" onclick="doLogin()" style="padding:12px;font-size:15px;">进入</button>
+    <div class="hint2">🔒 密码错误 5 次将锁定 10 分钟</div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+let items = [];
+
+const $ = id => document.getElementById(id);
+
+// ---- 解析规则：前 8 位数字 = 项目号，其余 = 名称 ----
+function parseInput(raw) {
+  const text = String(raw || '').trim();
+  if (!text) return { error: '请输入内容' };
+  const m = text.match(/\d{8}/);
+  if (!m) return { error: '未找到 8 位数字项目号' };
+  const code = m[0];
+  const start = m.index, end = m.index + 8;
+  let name = (text.slice(0, start) + ' ' + text.slice(end)).trim();
+  name = name.replace(/^[\s\-_—–·.。,，:：;；/\\|]+|[\s\-_—–·.。,，:：;；/\\|]+$/g, '');
+  return { code, name: name || '(未识别到名称)' };
+}
+
+// 输入实时预览
+$('input').addEventListener('input', () => {
+  const v = $('input').value;
+  const pv = $('preview');
+  if (!v.trim()) { pv.innerHTML = ''; return; }
+  const r = parseInput(v);
+  if (r.error) {
+    pv.innerHTML = `<span class="tag err">${esc(r.error)}</span>`;
+  } else {
+    pv.innerHTML = `解析：<span class="tag">${esc(r.code)}</span> → <span>${esc(r.name)}</span>`;
+  }
+});
+$('input').addEventListener('keydown', e => { if (e.key === 'Enter') addItem(); });
+
+// ---- 登录 ----
+async function doLogin() {
+  const pw = $('loginPw').value;
+  if (!pw) return toast('请输入密码', true);
+  $('loginBtn').disabled = true; $('loginBtn').textContent = '验证中…';
+  try {
+    const r = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pw }),
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || '登录失败');
+    enterApp();
+  } catch (e) {
+    toast(e.message, true);
+    $('loginPw').value = ''; $('loginPw').focus();
+  } finally {
+    $('loginBtn').disabled = false; $('loginBtn').textContent = '进入';
+  }
+}
+
+function enterApp() {
+  $('loginMask').classList.add('hidden');
+  load();
+}
+
+async function checkAuth() {
+  try {
+    const r = await fetch('/api/items');
+    if (r.ok) { enterApp(); return; }
+    if (r.status === 401) {
+      $('loginMask').classList.remove('hidden');
+      setTimeout(() => $('loginPw').focus(), 50);
+    }
+  } catch (e) {
+    $('tbody').innerHTML = '';
+    $('empty').hidden = false;
+    $('empty').innerHTML = '<div class="big">⚠️</div>连接失败，请检查服务是否运行';
+  }
+}
+
+// ---- 数据 ----
+async function load() {
+  $('loading').hidden = false;
+  try {
+    const r = await fetch('/api/items');
+    if (r.status === 401) { $('loginMask').classList.remove('hidden'); return; }
+    const data = await r.json();
+    items = data.items || [];
+    render();
+  } catch (e) {
+    toast('加载失败：' + e.message, true);
+  } finally {
+    $('loading').hidden = true;
+  }
+}
+
+async function addItem() {
+  const raw = $('input').value;
+  const r = parseInput(raw);
+  if (r.error) return toast(r.error, true);
+  const btn = $('addBtn');
+  btn.disabled = true; btn.textContent = '保存中…';
+  try {
+    const resp = await fetch('/api/items', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ raw }),
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || '保存失败');
+    $('input').value = '';
+    $('preview').innerHTML = '';
+    toast(`✅ 已添加 ${data.item.code} ${data.item.name}`);
+    load();
+    $('input').focus();
+  } catch (e) {
+    toast(e.message, true);
+  } finally {
+    btn.disabled = false; btn.textContent = '＋ 添加';
+  }
+}
+
+async function delItem(id) {
+  const it = items.find(x => x.id === id);
+  if (!it) return;
+  if (!confirm(`确定删除 ${it.code} ${it.name} 吗？`)) return;
+  try {
+    const r = await fetch(`/api/items/${id}`, { method: 'DELETE' });
+    if (!r.ok) throw new Error('删除失败');
+    toast('🗑 已删除');
+    load();
+  } catch (e) { toast(e.message, true); }
+}
+
+// ---- 渲染 ----
+function render() {
+  const q = $('search').value.trim().toLowerCase();
+  const list = items.filter(it =>
+    !q || it.code.toLowerCase().includes(q) || it.name.toLowerCase().includes(q)
+  );
+  $('stats').innerHTML = `共 <b>${items.length}</b> 条物料记录`;
+  $('empty').hidden = list.length > 0;
+  if (list.length) $('empty').innerHTML = '<div class="big">📦</div>还没有物料记录，输入项目号和名称后点「添加」';
+  const tbody = $('tbody');
+  tbody.innerHTML = list.map(it => `
+    <tr>
+      <td class="code" data-label="物料项目号">${esc(it.code)}</td>
+      <td class="name" data-label="物料名称">${esc(it.name)}</td>
+      <td class="time" data-label="添加时间">${fmtTime(it.createdAt)}</td>
+      <td style="text-align:right;"><button class="op-btn" title="删除" onclick="delItem('${it.id}')">🗑</button></td>
+    </tr>`).join('');
+}
+
+function fmtTime(ts) {
+  const d = new Date(ts);
+  const p = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+}
+
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, m =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+}
+
+function toast(msg, isErr) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.className = isErr ? 'err show' : 'show';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+$('search').addEventListener('input', render);
+$('loginPw').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+document.addEventListener('keydown', e => {
+  if (e.key === '/' && document.activeElement !== $('input') && document.activeElement !== $('search')) {
+    e.preventDefault(); $('input').focus();
+  }
+});
+
+checkAuth();
+</script>
+</body>
+</html>
