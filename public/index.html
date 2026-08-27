@@ -206,11 +206,11 @@
   <section class="entry">
     <div class="entry-label">输入项目号和物料名称（自动截取前 8 位数字为项目号）</div>
     <div class="entry-row">
-      <input id="input" type="text" placeholder="例：2026082705 不锈钢法兰球阀 或 20260827法兰闸阀" autocomplete="off">
+      <input id="input" type="text" placeholder="例：20260827 耐高温不锈钢球阀 或 20260827法兰闸阀" autocomplete="off">
       <button class="btn primary" id="addBtn" onclick="addItem()">＋ 添加</button>
     </div>
     <div class="preview" id="preview"></div>
-    <div class="hint">💡 支持直接粘贴整段文字：<code>2026082705 耐高温不锈钢球阀</code> → 项目号 <code>20260827</code> + 名称 <code>耐高温不锈钢球阀</code>。同项目号重复添加会更新名称。</div>
+    <div class="hint">💡 直接粘贴整段文字：<code>20260827 耐高温不锈钢球阀</code> → 项目号 <code>20260827</code> + 名称 <code>耐高温不锈钢球阀</code>。项目号取前 8 位数字，其余为名称；编号超 8 位时仅记录前 8 位。同项目号重复添加会更新名称。</div>
   </section>
 
   <!-- 列表 -->
