@@ -170,6 +170,35 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  if (url.pathname === "/api/items/batch" && req.method === "POST") {
+    try {
+      const p = await readBody(req);
+      const raws = Array.isArray(p.raws) ? p.raws.map(String) : [];
+      if (!raws.length) return badRequest(res, "没有可添加的条目");
+      const data = await loadItems();
+      const map = new Map(data.items.map(x => [x.code, x]));
+      const results = [];
+      for (const raw of raws) {
+        const parsed = parseInput(raw);
+        if (parsed.error) { results.push({ raw, error: parsed.error }); continue; }
+        const now = Date.now();
+        const item = {
+          id: now.toString(36) + Math.random().toString(36).slice(2, 6),
+          code: parsed.code, name: parsed.name, raw: raw.slice(0, 500), createdAt: now,
+        };
+        map.set(parsed.code, item);
+        results.push({ raw, ok: true, item });
+      }
+      data.items = Array.from(map.values()).sort((a, b) => b.createdAt - a.createdAt);
+      await saveItems(data);
+      const added = results.filter(r => r.ok).length;
+      const failed = results.length - added;
+      res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
+      res.end(JSON.stringify({ ok: true, added, failed, results }));
+    } catch (e) { api500(res, e); }
+    return;
+  }
+
   if (url.pathname === "/api/items" && req.method === "POST") {
     try {
       const p = await readBody(req);

@@ -78,14 +78,23 @@
     margin-bottom: 18px;
   }
   .entry-label { font-size: 13px; color: var(--muted); font-weight: 600; }
-  .entry-row { display: flex; gap: 10px; }
-  .entry-row input {
+  .entry-row { display: flex; gap: 10px; align-items: flex-start; }
+  .entry-row textarea {
     flex: 1; padding: 12px 14px; border: 1px solid var(--border);
-    border-radius: 8px; font-size: 15px; outline: none;
-    background: var(--panel); color: var(--text);
+    border-radius: 8px; font-size: 15px; outline: none; resize: vertical;
+    min-height: 52px; max-height: 240px;
+    background: var(--panel); color: var(--text); line-height: 1.6; font-family: inherit;
   }
-  .entry-row input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+  .entry-row textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
   .entry-row .btn { font-size: 15px; padding: 12px 22px; }
+  .pv-line { display: flex; gap: 8px; align-items: baseline; font-size: 13px; padding: 2px 0; width: 100%; }
+  .pv-line.err { color: var(--red); }
+  .pv-line .muted { color: var(--muted); }
+  .pv-code {
+    font-family: ui-monospace, Consolas, monospace; font-weight: 700;
+    color: var(--accent); white-space: nowrap;
+  }
+  .pv-list { width: 100%; display: flex; flex-direction: column; gap: 2px; margin-top: 4px; }
   .preview {
     display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
     font-size: 13px; color: var(--muted);
@@ -204,13 +213,13 @@
 <main>
   <!-- 录入区 -->
   <section class="entry">
-    <div class="entry-label">输入项目号和物料名称（自动截取前 8 位数字为项目号）</div>
+    <div class="entry-label">输入项目号和物料名称（自动截取前 8 位数字为项目号，可一次粘贴多行批量添加）</div>
     <div class="entry-row">
-      <input id="input" type="text" placeholder="例：20260827 耐高温不锈钢球阀 或 20260827法兰闸阀" autocomplete="off">
-      <button class="btn primary" id="addBtn" onclick="addItem()">＋ 添加</button>
+      <textarea id="input" rows="3" placeholder="每行一条，例如：&#10;20260827 耐高温不锈钢球阀&#10;33445566铸铁闸阀&#10;20260828 不锈钢法兰闸阀" autocomplete="off"></textarea>
+      <button class="btn primary" id="addBtn" onclick="addItems()">＋ 批量添加</button>
     </div>
     <div class="preview" id="preview"></div>
-    <div class="hint">💡 直接粘贴整段文字：<code>20260827 耐高温不锈钢球阀</code> → 项目号 <code>20260827</code> + 名称 <code>耐高温不锈钢球阀</code>。项目号取前 8 位数字，其余为名称；编号超 8 位时仅记录前 8 位。同项目号重复添加会更新名称。</div>
+    <div class="hint">💡 每行一条，粘贴多行后自动逐行提取。Ctrl+Enter 快速提交；单行时按 Enter 直接添加。项目号取前 8 位数字，其余为名称；同项目号重复添加会更新名称。</div>
   </section>
 
   <!-- 列表 -->
@@ -266,19 +275,36 @@ function parseInput(raw) {
   return { code, name: name || '(未识别到名称)' };
 }
 
-// 输入实时预览
+// 输入实时预览（多行逐行解析）
+function parseLines(text) {
+  return String(text || '').split(/\r?\n/).map(l => l.trim()).filter(Boolean).map(l => ({ raw: l, ...parseInput(l) }));
+}
+
 $('input').addEventListener('input', () => {
-  const v = $('input').value;
+  const lines = parseLines($('input').value);
   const pv = $('preview');
-  if (!v.trim()) { pv.innerHTML = ''; return; }
-  const r = parseInput(v);
-  if (r.error) {
-    pv.innerHTML = `<span class="tag err">${esc(r.error)}</span>`;
-  } else {
-    pv.innerHTML = `解析：<span class="tag">${esc(r.code)}</span> → <span>${esc(r.name)}</span>`;
-  }
+  if (!lines.length) { pv.innerHTML = ''; return; }
+  const ok = lines.filter(l => l.code);
+  const bad = lines.filter(l => l.error);
+  let html = '';
+  if (ok.length) html += `<span class="tag">✓ ${ok.length} 条可识别</span>`;
+  if (bad.length) html += `<span class="tag err">✗ ${bad.length} 条无法识别</span>`;
+  html += `<div class="pv-list">`;
+  lines.slice(0, 15).forEach(l => {
+    if (l.error) html += `<div class="pv-line err">✗ <span class="muted">${esc(l.raw)}</span> — ${esc(l.error)}</div>`;
+    else html += `<div class="pv-line">✓ <span class="pv-code">${esc(l.code)}</span> <span>${esc(l.name)}</span></div>`;
+  });
+  if (lines.length > 15) html += `<div class="hint">…共 ${lines.length} 行，将全部添加</div>`;
+  html += `</div>`;
+  pv.innerHTML = html;
 });
-$('input').addEventListener('keydown', e => { if (e.key === 'Enter') addItem(); });
+$('input').addEventListener('keydown', e => {
+  const lines = parseLines($('input').value);
+  if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey) {
+    if (lines.length === 1) { e.preventDefault(); addItems(); } // 单行时回车直接提交
+  }
+  if (e.ctrlKey && e.key === 'Enter') { e.preventDefault(); addItems(); } // Ctrl+Enter 批量提交
+});
 
 // ---- 登录 ----
 async function doLogin() {
@@ -338,29 +364,29 @@ async function load() {
   }
 }
 
-async function addItem() {
-  const raw = $('input').value;
-  const r = parseInput(raw);
-  if (r.error) return toast(r.error, true);
+async function addItems() {
+  const lines = parseLines($('input').value);
+  const ok = lines.filter(l => l.code);
+  if (!ok.length) return toast('没有可识别的物料（需要包含 8 位数字项目号）', true);
   const btn = $('addBtn');
   btn.disabled = true; btn.textContent = '保存中…';
   try {
-    const resp = await fetch('/api/items', {
+    const resp = await fetch('/api/items/batch', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ raw }),
+      body: JSON.stringify({ raws: ok.map(l => l.raw) }),
     });
     const data = await resp.json();
     if (!resp.ok) throw new Error(data.error || '保存失败');
     $('input').value = '';
     $('preview').innerHTML = '';
-    toast(`✅ 已添加 ${data.item.code} ${data.item.name}`);
+    toast(`✅ 已添加 ${data.added} 条` + (data.failed ? `，${data.failed} 条失败` : ''));
     load();
     $('input').focus();
   } catch (e) {
     toast(e.message, true);
   } finally {
-    btn.disabled = false; btn.textContent = '＋ 添加';
+    btn.disabled = false; btn.textContent = '＋ 批量添加';
   }
 }
 
