@@ -13,7 +13,6 @@
     --muted: #6b7280;
     --accent: #2563eb;
     --accent-soft: #eff6ff;
-    --green: #16a34a;
     --red: #dc2626;
     --radius: 12px;
   }
@@ -66,11 +65,23 @@
   }
   .btn.primary:hover { background: #1d4ed8; color: #fff; }
   .btn:disabled { opacity: .5; cursor: default; }
-  .btn.danger:hover { border-color: var(--red); color: var(--red); }
+  .icon-btn {
+    width: 36px; height: 36px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--panel);
+    font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+  .icon-btn:hover { border-color: var(--accent); }
 
   main { max-width: 980px; margin: 0 auto; padding: 20px; }
 
-  /* 录入区 */
+  .banner {
+    padding: 10px 14px; border-radius: 10px; font-size: 13px; margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  }
+  .banner.warn { background: #fff7e6; border: 1px solid #ffd591; color: #ad6800; }
+  .banner.ok { background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; }
+  .banner .link { color: var(--accent); cursor: pointer; text-decoration: underline; }
+
   .entry {
     background: var(--panel); border: 1px solid var(--border);
     border-radius: var(--radius); padding: 18px;
@@ -95,10 +106,7 @@
     color: var(--accent); white-space: nowrap;
   }
   .pv-list { width: 100%; display: flex; flex-direction: column; gap: 2px; margin-top: 4px; }
-  .preview {
-    display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
-    font-size: 13px; color: var(--muted);
-  }
+  .preview { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; font-size: 13px; color: var(--muted); }
   .preview .tag {
     padding: 4px 12px; border-radius: 8px;
     background: var(--accent-soft); color: var(--accent);
@@ -106,9 +114,7 @@
   }
   .preview .err { color: var(--red); background: #fef2f2; }
   .hint { font-size: 12px; color: var(--muted); }
-  .hint code { background: #f0f2f5; padding: 1px 6px; border-radius: 5px; font-size: 12px; }
 
-  /* 统计 + 列表 */
   .stats {
     display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
     font-size: 13px; color: var(--muted); margin-bottom: 12px;
@@ -136,39 +142,34 @@
     font-weight: 700; color: var(--accent); letter-spacing: .5px;
   }
   td.time { color: var(--muted); font-size: 13px; white-space: nowrap; }
-  .op-btn {
-    background: none; border: none; color: var(--muted);
-    cursor: pointer; font-size: 14px; padding: 4px 8px; border-radius: 6px;
-  }
-  .op-btn:hover { color: var(--red); background: #fef2f2; }
 
   .empty { text-align: center; color: var(--muted); padding: 46px 20px; font-size: 14px; }
   .empty .big { font-size: 42px; margin-bottom: 10px; }
   .loading { text-align: center; color: var(--muted); padding: 46px; }
 
-  /* 登录层 */
-  #loginMask {
-    position: fixed; inset: 0; z-index: 300;
-    background: radial-gradient(ellipse at top, #e8f0fe 0%, var(--bg) 70%);
-    display: flex; align-items: center; justify-content: center; padding: 20px;
+  /* Token 设置弹层 */
+  .modal-mask {
+    position: fixed; inset: 0; background: rgba(15,23,42,.5);
+    display: none; align-items: center; justify-content: center;
+    z-index: 100; padding: 20px;
   }
-  #loginMask.hidden { display: none; }
-  .login-card {
+  .modal-mask.show { display: flex; }
+  .modal {
     background: var(--panel); border: 1px solid var(--border);
-    border-radius: 16px; padding: 32px; width: 100%; max-width: 360px;
-    display: flex; flex-direction: column; gap: 16px; text-align: center;
-    box-shadow: 0 20px 60px rgba(15,23,42,.08);
+    border-radius: 16px; width: 100%; max-width: 480px; padding: 24px;
+    display: flex; flex-direction: column; gap: 14px;
+    box-shadow: 0 20px 60px rgba(15,23,42,.15);
   }
-  .login-card .logo { font-size: 26px; justify-content: center; display: flex; }
-  .login-card p { color: var(--muted); font-size: 13px; }
-  .login-card input {
-    width: 100%; padding: 12px 14px; border-radius: 10px;
-    background: var(--panel); border: 1px solid var(--border);
-    color: var(--text); font-size: 16px; outline: none; text-align: center;
-    letter-spacing: 2px;
+  .modal h2 { font-size: 17px; }
+  .modal label { font-size: 13px; color: var(--muted); display: block; margin-bottom: 6px; }
+  .modal input {
+    width: 100%; padding: 11px 12px; border: 1px solid var(--border);
+    border-radius: 8px; font-size: 14px; outline: none; background: var(--panel); color: var(--text);
   }
-  .login-card input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
-  .hint2 { font-size: 12px; color: var(--muted); }
+  .modal input:focus { border-color: var(--accent); }
+  .modal .footer { display: flex; gap: 10px; justify-content: flex-end; }
+  .modal ol { font-size: 12px; color: var(--muted); padding-left: 18px; line-height: 1.9; }
+  .modal a { color: var(--accent); }
 
   #toast {
     position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
@@ -179,7 +180,6 @@
   #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
   #toast.err { background: var(--red); }
 
-  /* 移动端：表格转卡片 */
   @media (max-width: 640px) {
     .entry-row { flex-direction: column; }
     .entry-row .btn { width: 100%; }
@@ -192,8 +192,6 @@
     tbody tr:last-child { border-bottom: none; }
     tbody td { border: none; padding: 2px 0; }
     td.time { font-size: 12px; }
-    .op-btn { position: absolute; right: 14px; top: 12px; }
-    tbody tr { position: relative; }
     td.code::before, td.name::before {
       content: attr(data-label); display: block;
       font-size: 11px; color: var(--muted); margin-bottom: 2px;
@@ -208,10 +206,14 @@
   <div class="search-box">
     <input id="search" type="text" placeholder="搜索项目号 / 物料名称…">
   </div>
+  <button class="icon-btn" id="settingsBtn" title="设置写入令牌">⚙️</button>
 </header>
 
 <main>
-  <!-- 录入区 -->
+  <div class="banner warn" id="tokenBanner" hidden>
+    ⚠️ 当前为只读模式（未配置写入令牌），可以查看列表但无法添加。点 <span class="link" onclick="openTokenModal()">这里配置令牌</span>。
+  </div>
+
   <section class="entry">
     <div class="entry-label">输入项目号和物料名称（自动截取前 8 位数字为项目号，可一次粘贴多行批量添加）</div>
     <div class="entry-row">
@@ -222,7 +224,6 @@
     <div class="hint">💡 每行一条，粘贴多行后自动逐行提取。Ctrl+Enter 快速提交；单行时按 Enter 直接添加。项目号取前 8 位数字，其余为名称；同项目号重复添加会更新名称。</div>
   </section>
 
-  <!-- 列表 -->
   <div class="stats" id="stats"></div>
   <div class="table-wrap">
     <table>
@@ -231,7 +232,6 @@
           <th style="width:180px;">物料项目号</th>
           <th>物料名称</th>
           <th style="width:190px;">添加时间</th>
-          <th style="width:70px; text-align:right;">操作</th>
         </tr>
       </thead>
       <tbody id="tbody"></tbody>
@@ -244,23 +244,65 @@
   </div>
 </main>
 
-<!-- 登录层 -->
-<div id="loginMask">
-  <div class="login-card">
-    <div class="logo">📦 物料项目号登记</div>
-    <p>私有工具，请输入访问密码</p>
-    <input type="password" id="loginPw" placeholder="访问密码" autocomplete="current-password">
-    <button class="btn primary" id="loginBtn" onclick="doLogin()" style="padding:12px;font-size:15px;">进入</button>
-    <div class="hint2">🔒 密码错误 5 次将锁定 10 分钟</div>
+<!-- Token 设置弹层 -->
+<div class="modal-mask" id="tokenMask">
+  <div class="modal">
+    <h2>写入令牌设置</h2>
+    <p class="hint">添加物料需要 GitHub 写入权限。令牌只保存在<b>当前浏览器</b>里，不会上传到任何服务器。</p>
+    <div>
+      <label>GitHub Token（推荐使用仅限本仓库的 Fine-grained Token）</label>
+      <input type="password" id="tokenInput" placeholder="github_pat_…" autocomplete="off">
+    </div>
+    <ol>
+      <li>打开 <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com/settings/personal-access-tokens/new</a></li>
+      <li>Repository access 选 <b>Only select repositories</b> → <b>xmh</b></li>
+      <li>Permissions → Repository permissions → <b>Contents</b> 设为 <b>Read and write</b></li>
+      <li>生成后粘贴到上方，点保存</li>
+    </ol>
+    <div class="footer">
+      <button class="btn" id="tokenClearBtn" onclick="clearToken()">清除令牌</button>
+      <button class="btn primary" onclick="saveToken()">保存</button>
+    </div>
   </div>
 </div>
 
 <div id="toast"></div>
 
 <script>
+const REPO = 'eastseao/xmh';
+const BRANCH = 'main';
+const FILE = 'items.json';
+const TOKEN_KEY = 'xmh_token_v1';
+
 let items = [];
+let fileSha = null;
 
 const $ = id => document.getElementById(id);
+
+function getToken() { return localStorage.getItem(TOKEN_KEY) || ''; }
+function b64ToUtf8(b64) {
+  const bin = atob(b64.replace(/\s+/g, ''));
+  const u = Uint8Array.from(bin, c => c.charCodeAt(0));
+  return new TextDecoder().decode(u);
+}
+function utf8ToB64(s) {
+  const b = new TextEncoder().encode(s);
+  let bin = '';
+  b.forEach(x => bin += String.fromCharCode(x));
+  return btoa(bin);
+}
+
+// ---- GitHub API ----
+async function api(path, opts = {}) {
+  const headers = {
+    'Accept': 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28',
+    ...(opts.headers || {})
+  };
+  const token = getToken();
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  return fetch(`https://api.github.com${path}`, { ...opts, headers });
+}
 
 // ---- 解析规则：前 8 位数字 = 项目号，其余 = 名称 ----
 function parseInput(raw) {
@@ -275,150 +317,99 @@ function parseInput(raw) {
   return { code, name: name || '(未识别到名称)' };
 }
 
-// 输入实时预览（多行逐行解析）
 function parseLines(text) {
   return String(text || '').split(/\r?\n/).map(l => l.trim()).filter(Boolean).map(l => ({ raw: l, ...parseInput(l) }));
 }
 
-$('input').addEventListener('input', () => {
-  const lines = parseLines($('input').value);
-  const pv = $('preview');
-  if (!lines.length) { pv.innerHTML = ''; return; }
-  const ok = lines.filter(l => l.code);
-  const bad = lines.filter(l => l.error);
-  let html = '';
-  if (ok.length) html += `<span class="tag">✓ ${ok.length} 条可识别</span>`;
-  if (bad.length) html += `<span class="tag err">✗ ${bad.length} 条无法识别</span>`;
-  html += `<div class="pv-list">`;
-  lines.slice(0, 15).forEach(l => {
-    if (l.error) html += `<div class="pv-line err">✗ <span class="muted">${esc(l.raw)}</span> — ${esc(l.error)}</div>`;
-    else html += `<div class="pv-line">✓ <span class="pv-code">${esc(l.code)}</span> <span>${esc(l.name)}</span></div>`;
-  });
-  if (lines.length > 15) html += `<div class="hint">…共 ${lines.length} 行，将全部添加</div>`;
-  html += `</div>`;
-  pv.innerHTML = html;
-});
-$('input').addEventListener('keydown', e => {
-  const lines = parseLines($('input').value);
-  if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey) {
-    if (lines.length === 1) { e.preventDefault(); addItems(); } // 单行时回车直接提交
-  }
-  if (e.ctrlKey && e.key === 'Enter') { e.preventDefault(); addItems(); } // Ctrl+Enter 批量提交
-});
-
-// ---- 登录 ----
-async function doLogin() {
-  const pw = $('loginPw').value;
-  if (!pw) return toast('请输入密码', true);
-  $('loginBtn').disabled = true; $('loginBtn').textContent = '验证中…';
-  try {
-    const r = await fetch('/api/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password: pw }),
-    });
-    const data = await r.json();
-    if (!r.ok) throw new Error(data.error || '登录失败');
-    enterApp();
-  } catch (e) {
-    toast(e.message, true);
-    $('loginPw').value = ''; $('loginPw').focus();
-  } finally {
-    $('loginBtn').disabled = false; $('loginBtn').textContent = '进入';
-  }
-}
-
-function enterApp() {
-  $('loginMask').classList.add('hidden');
-  load();
-}
-
-async function checkAuth() {
-  try {
-    const r = await fetch('/api/items');
-    if (r.ok) { enterApp(); return; }
-    if (r.status === 401) {
-      $('loginMask').classList.remove('hidden');
-      setTimeout(() => $('loginPw').focus(), 50);
-    }
-  } catch (e) {
-    $('tbody').innerHTML = '';
-    $('empty').hidden = false;
-    $('empty').innerHTML = '<div class="big">⚠️</div>连接失败，请检查服务是否运行';
-  }
-}
-
-// ---- 数据 ----
+// ---- 加载 ----
 async function load() {
   $('loading').hidden = false;
   try {
-    const r = await fetch('/api/items');
-    if (r.status === 401) { $('loginMask').classList.remove('hidden'); return; }
-    const data = await r.json();
-    items = data.items || [];
+    const r = await api(`/repos/${REPO}/contents/${FILE}?ref=${BRANCH}&_=${Date.now()}`);
+    if (r.status === 404) { items = []; fileSha = null; render(); return; }
+    if (!r.ok) throw new Error('GitHub ' + r.status);
+    const j = await r.json();
+    fileSha = j.sha;
+    items = JSON.parse(b64ToUtf8(j.content)).items || [];
     render();
   } catch (e) {
     toast('加载失败：' + e.message, true);
+    $('tbody').innerHTML = '';
   } finally {
     $('loading').hidden = true;
   }
 }
 
 async function addItems() {
+  if (!getToken()) {
+    openTokenModal();
+    toast('请先配置写入令牌', true);
+    return;
+  }
   const lines = parseLines($('input').value);
   const ok = lines.filter(l => l.code);
   if (!ok.length) return toast('没有可识别的物料（需要包含 8 位数字项目号）', true);
   const btn = $('addBtn');
   btn.disabled = true; btn.textContent = '保存中…';
   try {
-    const resp = await fetch('/api/items/batch', {
-      method: 'POST',
+    // 重新拉最新数据（拿 sha）
+    const r = await api(`/repos/${REPO}/contents/${FILE}?ref=${BRANCH}`);
+    let data;
+    if (r.status === 404) { data = { items: [] }; fileSha = null; }
+    else if (r.ok) { const j = await r.json(); fileSha = j.sha; data = JSON.parse(b64ToUtf8(j.content)); }
+    else throw new Error('GitHub ' + r.status);
+
+    const map = new Map((data.items || []).map(x => [x.code, x]));
+    const results = [];
+    for (const line of ok) {
+      const now = Date.now();
+      const item = { id: now.toString(36) + Math.random().toString(36).slice(2, 6), code: line.code, name: line.name, raw: line.raw.slice(0, 500), createdAt: now };
+      map.set(line.code, item);
+      results.push({ code: line.code, name: line.name });
+    }
+    const merged = Array.from(map.values()).sort((a, b) => b.createdAt - a.createdAt);
+    const body = {
+      message: `批量添加 ${results.length} 条物料`,
+      content: utf8ToB64(JSON.stringify({ items: merged }, null, 2)),
+      branch: BRANCH,
+    };
+    if (fileSha) body.sha = fileSha;
+    const put = await api(`/repos/${REPO}/contents/${FILE}`, {
+      method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ raws: ok.map(l => l.raw) }),
+      body: JSON.stringify(body),
     });
-    const data = await resp.json();
-    if (!resp.ok) throw new Error(data.error || '保存失败');
+    if (!put.ok) throw new Error('GitHub ' + put.status + (await put.text().catch(() => '')));
+    const pj = await put.json();
+    fileSha = pj.content.sha;
+    items = merged;
     $('input').value = '';
     $('preview').innerHTML = '';
-    toast(`✅ 已添加 ${data.added} 条` + (data.failed ? `，${data.failed} 条失败` : ''));
-    load();
+    toast(`✅ 已添加 ${results.length} 条`);
+    render();
     $('input').focus();
   } catch (e) {
-    toast(e.message, true);
+    toast('保存失败：' + e.message, true);
   } finally {
     btn.disabled = false; btn.textContent = '＋ 批量添加';
   }
 }
 
-async function delItem(id) {
-  const it = items.find(x => x.id === id);
-  if (!it) return;
-  if (!confirm(`确定删除 ${it.code} ${it.name} 吗？`)) return;
-  try {
-    const r = await fetch(`/api/items/${id}`, { method: 'DELETE' });
-    if (!r.ok) throw new Error('删除失败');
-    toast('🗑 已删除');
-    load();
-  } catch (e) { toast(e.message, true); }
-}
-
 // ---- 渲染 ----
 function render() {
   const q = $('search').value.trim().toLowerCase();
-  const list = items.filter(it =>
-    !q || it.code.toLowerCase().includes(q) || it.name.toLowerCase().includes(q)
-  );
+  const list = items.filter(it => !q || it.code.toLowerCase().includes(q) || it.name.toLowerCase().includes(q));
   $('stats').innerHTML = `共 <b>${items.length}</b> 条物料记录`;
   $('empty').hidden = list.length > 0;
   if (list.length) $('empty').innerHTML = '<div class="big">📦</div>还没有物料记录，输入项目号和名称后点「添加」';
-  const tbody = $('tbody');
-  tbody.innerHTML = list.map(it => `
+  $('tbody').innerHTML = list.map(it => `
     <tr>
       <td class="code" data-label="物料项目号">${esc(it.code)}</td>
       <td class="name" data-label="物料名称">${esc(it.name)}</td>
       <td class="time" data-label="添加时间">${fmtTime(it.createdAt)}</td>
-      <td style="text-align:right;"><button class="op-btn" title="删除" onclick="delItem('${it.id}')">🗑</button></td>
     </tr>`).join('');
+  // 令牌提示
+  $('tokenBanner').hidden = !!getToken();
 }
 
 function fmtTime(ts) {
@@ -440,15 +431,63 @@ function toast(msg, isErr) {
   t._timer = setTimeout(() => t.classList.remove('show'), 2500);
 }
 
+// ---- Token 设置 ----
+function openTokenModal() {
+  $('tokenInput').value = getToken();
+  $('tokenMask').classList.add('show');
+  setTimeout(() => $('tokenInput').focus(), 50);
+}
+function closeTokenModal() { $('tokenMask').classList.remove('show'); }
+function saveToken() {
+  const v = $('tokenInput').value.trim();
+  if (v) localStorage.setItem(TOKEN_KEY, v);
+  else localStorage.removeItem(TOKEN_KEY);
+  closeTokenModal();
+  render();
+  toast(v ? '令牌已保存' : '令牌已清除');
+  if (v) load();
+}
+function clearToken() {
+  localStorage.removeItem(TOKEN_KEY);
+  closeTokenModal();
+  render();
+  toast('令牌已清除');
+}
+
+// ---- 事件 ----
 $('search').addEventListener('input', render);
-$('loginPw').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+$('settingsBtn').addEventListener('click', openTokenModal);
+$('tokenMask').addEventListener('click', e => { if (e.target === $('tokenMask')) closeTokenModal(); });
 document.addEventListener('keydown', e => {
-  if (e.key === '/' && document.activeElement !== $('input') && document.activeElement !== $('search')) {
-    e.preventDefault(); $('input').focus();
+  if (e.key === 'Escape') closeTokenModal();
+});
+$('input').addEventListener('input', () => {
+  const lines = parseLines($('input').value);
+  const pv = $('preview');
+  if (!lines.length) { pv.innerHTML = ''; return; }
+  const ok = lines.filter(l => l.code);
+  const bad = lines.filter(l => l.error);
+  let html = '';
+  if (ok.length) html += `<span class="tag">✓ ${ok.length} 条可识别</span>`;
+  if (bad.length) html += `<span class="tag err">✗ ${bad.length} 条无法识别</span>`;
+  html += `<div class="pv-list">`;
+  lines.slice(0, 15).forEach(l => {
+    if (l.error) html += `<div class="pv-line err">✗ <span class="muted">${esc(l.raw)}</span> — ${esc(l.error)}</div>`;
+    else html += `<div class="pv-line">✓ <span class="pv-code">${esc(l.code)}</span> <span>${esc(l.name)}</span></div>`;
+  });
+  if (lines.length > 15) html += `<div class="hint">…共 ${lines.length} 行，将全部添加</div>`;
+  html += `</div>`;
+  pv.innerHTML = html;
+});
+$('input').addEventListener('keydown', e => {
+  const lines = parseLines($('input').value);
+  if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey) {
+    if (lines.length === 1) { e.preventDefault(); addItems(); }
   }
+  if (e.ctrlKey && e.key === 'Enter') { e.preventDefault(); addItems(); }
 });
 
-checkAuth();
+load();
 </script>
 </body>
 </html>
