@@ -322,19 +322,39 @@ function parseLines(text) {
 }
 
 // ---- 加载 ----
+// 主通道：raw.githubusercontent.com（不走 API 限额，免认证）；备用：Contents API（带 token 则认证）
+async function loadRaw() {
+  const r = await fetch(`https://raw.githubusercontent.com/${REPO}/${BRANCH}/${FILE}?_=${Date.now()}`);
+  if (!r.ok) { const err = new Error('raw ' + r.status); err.status = r.status; throw err; }
+  return JSON.parse(await r.text());
+}
+
+async function loadViaApi() {
+  const r = await api(`/repos/${REPO}/contents/${FILE}?ref=${BRANCH}&_=${Date.now()}`);
+  if (r.status === 404) { items = []; fileSha = null; return { items: [] }; }
+  if (!r.ok) { const err = new Error('GitHub ' + r.status); err.status = r.status; throw err; }
+  const j = await r.json();
+  fileSha = j.sha;
+  return JSON.parse(b64ToUtf8(j.content));
+}
+
 async function load() {
   $('loading').hidden = false;
   try {
-    const r = await api(`/repos/${REPO}/contents/${FILE}?ref=${BRANCH}&_=${Date.now()}`);
-    if (r.status === 404) { items = []; fileSha = null; render(); return; }
-    if (!r.ok) throw new Error('GitHub ' + r.status);
-    const j = await r.json();
-    fileSha = j.sha;
-    items = JSON.parse(b64ToUtf8(j.content)).items || [];
+    let data;
+    try {
+      data = await loadRaw();
+    } catch (rawErr) {
+      data = await loadViaApi();
+    }
+    items = (data && data.items) || [];
     render();
   } catch (e) {
-    toast('加载失败：' + e.message, true);
+    const hint = (String(e.message).includes('403') || String(e.message).includes('429'))
+      ? '（API 限流，点右上角 ⚙️ 配置令牌后不再受限）' : '';
+    toast('加载失败：' + e.message + hint, true);
     $('tbody').innerHTML = '';
+    $('stats').innerHTML = '';
   } finally {
     $('loading').hidden = true;
   }
